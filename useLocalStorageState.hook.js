@@ -1,21 +1,35 @@
-import * as React from 'react';
+import * as React from 'react'
 
-const useLocalStorageState = (key, initialValue) => {
+function useLocalStorageState(
+  key,
+  defaultValue = '',
+  { serialize = JSON.stringify, deserialize = JSON.parse } = {}
+) {
   const [state, setState] = React.useState(() => {
-    let value = ''
-    try {
-      value = JSON.parse(localStorage.getItem(key))
-    } catch (err) {
-      value = initialValue || ''
+    const valueInLocalStorage = window.localStorage.getItem(key)
+    if (valueInLocalStorage) {
+      // the try/catch is here in case the localStorage value was set before
+      // we had the serialization in place (like we do in previous extra credits)
+      try {
+        return deserialize(valueInLocalStorage)
+      } catch (error) {
+        window.localStorage.removeItem(key)
+      }
     }
-    return value ? value : initialValue || ''
+    return typeof defaultValue === 'function' ? defaultValue() : defaultValue
   })
 
+  const prevKeyRef = React.useRef(key)
+
+  // Check the example at src/examples/local-state-key-change.js to visualize a key change
   React.useEffect(() => {
-    try {
-      localStorage.setItem(key, JSON.stringify(state))
-    } catch (error) {}
-  }, [state, key])
+    const prevKey = prevKeyRef.current
+    if (prevKey !== key) {
+      window.localStorage.removeItem(prevKey)
+    }
+    prevKeyRef.current = key
+    window.localStorage.setItem(key, serialize(state))
+  }, [key, state, serialize])
 
   const removeItem = () => {
     try {
@@ -23,5 +37,5 @@ const useLocalStorageState = (key, initialValue) => {
     } catch (error) {}
   }
 
-  return [state, setState, removeItem]
+  return [state, setState]
 }
