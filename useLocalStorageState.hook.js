@@ -9,7 +9,7 @@ function useLocalStorageState(
     const valueInLocalStorage = window.localStorage.getItem(key)
     if (valueInLocalStorage) {
       // the try/catch is here in case the localStorage value was set before
-      // we had the serialization in place (like we do in previous extra credits)
+      // we had the serialization in place
       try {
         return deserialize(valueInLocalStorage)
       } catch (error) {
@@ -21,7 +21,6 @@ function useLocalStorageState(
 
   const prevKeyRef = React.useRef(key)
 
-  // Check the example at src/examples/local-state-key-change.js to visualize a key change
   React.useEffect(() => {
     const prevKey = prevKeyRef.current
     if (prevKey !== key) {
